@@ -5,10 +5,10 @@ module GtkCtx
 
     , getGtkCtx
     , showGtkCtx
+    , changeTreeStore
     ) where
 
 import Base
-import Common
 
 import qualified Control.Monad.Trans.State.Lazy as ST
 
@@ -29,12 +29,12 @@ getGtkCtx = do
   hbox <- hBoxNew False 20
 
 
-  let forest = fmap (\i -> Node { rootLabel = tshow i,
-                                  subForest =
-                                    (fmap (\i -> Node {
-                                              rootLabel = tshow i,
-                                              subForest = []
-                                              }
+  let forest = fmap (\i -> Node { rootLabel = tshow i
+                                , subForest =
+                                    (fmap (\i ->
+                                             Node { rootLabel = tshow i
+                                                  , subForest = []
+                                                  }
                                           ) [0..5]
                                     )
                                 }
@@ -48,31 +48,33 @@ getGtkCtx = do
   cellLayoutSetAttributes tvCol rend ts (\row -> [cellText := row])
   newColNums <- treeViewInsertColumn tv tvCol (-1)
   
-  set w [
-      windowDefaultWidth := 640
-    , windowDefaultHeight := 480
-    , containerChild := hbox
-    ]
+  set w [ windowDefaultWidth := 640
+        , windowDefaultHeight := 480
+        , containerChild := hbox
+        ]
 
   boxPackStart hbox tv PackGrow 0
   boxPackStart hbox l PackGrow 0
   onDestroy w mainQuit
-  return GtkCtx {
-      mainWindow = w
-    , cardLabel = l
-    , treeView = tv
-    , treeStore = ts
-    }
+  return GtkCtx { mainWindow = w
+                , cardLabel = l
+                , treeView = tv
+                , treeStore = ts
+                }
 
--- changeCardTree :: CardTree -> GtkState ()
--- changeCardTree cards = do
---   ctx <- ST.get
---   let tv = treeView ctx
-  
-  
 
 showGtkCtx :: GtkState ()
 showGtkCtx = do
   ctx <- ST.get
   liftIO $ widgetShowAll $ mainWindow ctx
   ST.put ctx
+
+
+changeTreeStore :: TreeStore Text -> GtkState ()
+changeTreeStore ts = do
+  ctx <- ST.get
+  ST.put $ GtkCtx { mainWindow = (mainWindow ctx)
+                  , cardLabel  = (cardLabel ctx)
+                  , treeView   = (treeView ctx)
+                  , treeStore  = ts
+                  }

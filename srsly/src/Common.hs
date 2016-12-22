@@ -2,8 +2,11 @@
 
 module Common
   ( CardTree(..)
+
+  , module GtkCtx
   ) where
 
 import Base
+import GtkCtx
 
-type CardTree = [Tree Text]
+type CardTree = Forest Text
