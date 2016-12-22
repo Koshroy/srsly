@@ -6,4 +6,4 @@ module Common
 
 import Base
 
-type CardTree = Tree Text
+type CardTree = [Tree Text]

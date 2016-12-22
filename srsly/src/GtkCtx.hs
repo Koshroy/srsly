@@ -10,14 +10,17 @@ module GtkCtx
 import Base
 import Common
 
-data GtkCtx = GtkCtx {
-  mainWindow :: Window
-, cardLabel  :: Label
-, treeView   :: TreeView
-  } deriving (Eq)
+import qualified Control.Monad.Trans.State.Lazy as ST
 
-type GtkCtxState = State GtkCtx
-type GtkCtxStateIO = StateT GtkCtx IO
+data GtkCtx = GtkCtx {
+    mainWindow :: Window
+  , cardLabel  :: Label
+  , treeView   :: TreeView
+  , treeStore  :: TreeStore Text
+  }
+
+type GtkCtxState = ST.State GtkCtx
+type GtkState = ST.StateT GtkCtx IO
 
 getGtkCtx :: IO GtkCtx
 getGtkCtx = do
@@ -54,12 +57,22 @@ getGtkCtx = do
   boxPackStart hbox tv PackGrow 0
   boxPackStart hbox l PackGrow 0
   onDestroy w mainQuit
-  return GtkCtx { mainWindow = w, cardLabel = l, treeView = tv}
+  return GtkCtx {
+      mainWindow = w
+    , cardLabel = l
+    , treeView = tv
+    , treeStore = ts
+    }
 
-changeCardTree :: CardTree -> GtkCtxStateIO ()
-changeCardTree cards = do
-  ctx <- get
-  treeView
+-- changeCardTree :: CardTree -> GtkState ()
+-- changeCardTree cards = do
+--   ctx <- ST.get
+--   let tv = treeView ctx
+  
+  
 
-showGtkCtx :: GtkCtxStateIO ()
-showGtkCtx = widgetShowAll $ mainWindow ctx
+showGtkCtx :: GtkState ()
+showGtkCtx = do
+  ctx <- ST.get
+  liftIO $ widgetShowAll $ mainWindow ctx
+  ST.put ctx

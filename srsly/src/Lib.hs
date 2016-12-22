@@ -12,6 +12,8 @@ import Base
 
 import GtkCtx
 
+import qualified Control.Monad.Trans.State.Lazy as ST
+
 
 someFunc :: IO ()
 someFunc = putStrLn $ pack "someFunc"
@@ -28,6 +30,6 @@ startGui = do
 mainLoop :: IO ()
 mainLoop = do
   ctx <- getGtkCtx
-  showGtkCtx ctx
+  ST.evalStateT showGtkCtx ctx
   mainGUI
   return ()
