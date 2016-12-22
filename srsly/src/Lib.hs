@@ -29,7 +29,7 @@ startGui = do
 
 mainLoop :: IO ()
 mainLoop = do
-  ctx <- getGtkCtx
+  ctx <- newGtkCtx
   ST.evalStateT showGtkCtx ctx
   mainGUI
   return ()

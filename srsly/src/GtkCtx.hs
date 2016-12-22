@@ -3,7 +3,7 @@
 module GtkCtx
     ( GtkCtx
 
-    , getGtkCtx
+    , newGtkCtx
     , showGtkCtx
     , changeTreeStore
     ) where
@@ -22,8 +22,8 @@ data GtkCtx = GtkCtx {
 type GtkCtxState = ST.State GtkCtx
 type GtkState = ST.StateT GtkCtx IO
 
-getGtkCtx :: IO GtkCtx
-getGtkCtx = do
+newGtkCtx :: IO GtkCtx
+newGtkCtx = do
   w <- windowNew
   l <- labelNew $ Just (asText $ pack "Hello World!")
   hbox <- hBoxNew False 20
