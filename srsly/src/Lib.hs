@@ -9,14 +9,16 @@ module Lib
     ) where
 
 import Base
+import Common
 
-import GtkCtx
+import CardTree
 
 import qualified Control.Monad.Trans.State.Lazy as ST
 
 
 someFunc :: IO ()
 someFunc = putStrLn $ pack "someFunc"
+
 
 startGui :: IO Bool
 startGui = do
@@ -27,9 +29,12 @@ startGui = do
       putStrLn $ pack $ mconcat initMsg
       return False
 
+
 mainLoop :: IO ()
 mainLoop = do
   ctx <- newGtkCtx
-  ST.evalStateT showGtkCtx ctx
+  tree <- getDirectoryCardTree "/home/koushik/decks/example_deck/categories"
+  let transforms = (changeCardTree tree) >> showGtkCtx
+  ST.evalStateT transforms ctx
   mainGUI
   return ()

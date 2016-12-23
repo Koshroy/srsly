@@ -2,10 +2,15 @@
 
 module GtkCtx
     ( GtkCtx
-
+    , GtkState
+    
     , newGtkCtx
     , showGtkCtx
     , changeTreeStore
+    , mainWindow
+    , cardLabel
+    , treeView
+    , treeStore
     ) where
 
 import Base
@@ -19,7 +24,6 @@ data GtkCtx = GtkCtx {
   , treeStore  :: TreeStore Text
   }
 
-type GtkCtxState = ST.State GtkCtx
 type GtkState = ST.StateT GtkCtx IO
 
 newGtkCtx :: IO GtkCtx
@@ -28,19 +32,7 @@ newGtkCtx = do
   l <- labelNew $ Just (asText $ pack "Hello World!")
   hbox <- hBoxNew False 20
 
-
-  let forest = fmap (\i -> Node { rootLabel = tshow i
-                                , subForest =
-                                    (fmap (\i ->
-                                             Node { rootLabel = tshow i
-                                                  , subForest = []
-                                                  }
-                                          ) [0..5]
-                                    )
-                                }
-                    ) [0..5]
-
-  ts <- treeStoreNew forest
+  ts <- treeStoreNew []
   tv <- treeViewNewWithModel ts
   tvCol <- treeViewColumnNew
   rend <- cellRendererTextNew
