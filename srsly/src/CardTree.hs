@@ -3,6 +3,7 @@
 module CardTree
   ( changeCardTree
   , getDirectoryCardTree
+  , printTreeSelectionCB
   ) where
 
 import Base
@@ -29,7 +30,7 @@ changeCardTree cards = do
   let ts = treeStore ctx
   liftIO $ treeStoreClear ts
   liftIO $ treeStoreInsertForest ts [] 0 cards
-  changeTreeStore ts
+  setTreeStore ts
 
 
 isCardJson :: FilePath -> IO Bool
@@ -58,3 +59,15 @@ getDirectoryCardTree path = do
                                }
                        ) cardFiles
   return $ childCards ++ currCards
+
+printTreeSelectionCB :: GtkState TreeSelectionCB
+printTreeSelectionCB = do
+  ctx <- ST.get
+  return $ (
+    \tpath -> do
+      currTreeM <- treeStoreLookup (treeStore ctx) tpath
+      case currTreeM of
+        Nothing -> putStrLn $ pack "Error with row selection"
+        Just currTree -> putStrLn $ rootLabel currTree
+      return True
+      )

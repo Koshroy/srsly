@@ -6,11 +6,12 @@ module GtkCtx
     
     , newGtkCtx
     , showGtkCtx
-    , changeTreeStore
+    , setTreeStore
     , mainWindow
     , cardLabel
     , treeView
     , treeStore
+    , setTreeViewSelectFunc
     ) where
 
 import Base
@@ -40,9 +41,9 @@ newGtkCtx = do
   cellLayoutSetAttributes tvCol rend ts (\row -> [cellText := row])
   newColNums <- treeViewInsertColumn tv tvCol (-1)
   
-  set w [ windowDefaultWidth := 640
+  set w [ windowDefaultWidth  := 640
         , windowDefaultHeight := 480
-        , containerChild := hbox
+        , containerChild      := hbox
         ]
 
   boxPackStart hbox tv PackGrow 0
@@ -62,11 +63,20 @@ showGtkCtx = do
   ST.put ctx
 
 
-changeTreeStore :: TreeStore Text -> GtkState ()
-changeTreeStore ts = do
+setTreeStore :: TreeStore Text -> GtkState ()
+setTreeStore ts = do
   ctx <- ST.get
   ST.put $ GtkCtx { mainWindow = (mainWindow ctx)
                   , cardLabel  = (cardLabel ctx)
                   , treeView   = (treeView ctx)
                   , treeStore  = ts
                   }
+
+
+setTreeViewSelectFunc :: TreeSelectionCB -> GtkState ()
+setTreeViewSelectFunc cb = do
+  ctx <- ST.get
+  let tv = treeView ctx
+  selection <- liftIO $ treeViewGetSelection tv
+  liftIO $ treeSelectionSetSelectFunction selection cb
+  ST.put ctx

@@ -34,7 +34,11 @@ mainLoop :: IO ()
 mainLoop = do
   ctx <- newGtkCtx
   tree <- getDirectoryCardTree "/home/koushik/decks/example_deck/categories"
-  let transforms = (changeCardTree tree) >> showGtkCtx
-  ST.evalStateT transforms ctx
+  let actions = do
+        changeCardTree tree
+        cb <- printTreeSelectionCB
+        setTreeViewSelectFunc cb
+        showGtkCtx
+  ST.evalStateT actions ctx
   mainGUI
   return ()
