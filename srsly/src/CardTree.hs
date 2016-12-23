@@ -60,14 +60,46 @@ getDirectoryCardTree path = do
                        ) cardFiles
   return $ childCards ++ currCards
 
-printTreeSelectionCB :: GtkState TreeSelectionCB
-printTreeSelectionCB = do
+-- Helper function to create a callback that operates on selections
+-- Given a callback of the form (Text -> IO ()) we assign this
+-- callback to the callback condition when a new element in our
+-- TreeView is selected.
+--
+-- The implementation of this function is tricky because the
+-- selection callback fires on both select and deselect conditions.
+-- The way this function guarantees that it is only fired once on
+-- select is that:
+--
+-- 1. Make sure that the element we want (using TreePath) is
+--    currently not selected. If it is selected, then a deselect
+--    is firing on the currently selected element
+--    (the element is already selected and a selection callback
+--    has fired). So make sure it isn't currently selected.
+--
+-- 2. Make sure that no rows are currently selected. Because
+--    this callback fires before selection, if the callback
+--    fires on a selection event, then because only a single
+--    selection is allowed at one time, no element is currently
+--    selected and the given element is *about* to be selected.
+makeSelectionCB :: (Text -> IO ()) -> GtkState TreeSelectionCB
+makeSelectionCB cb = do
   ctx <- ST.get
+  selection <- liftIO $ treeViewGetSelection (treeView ctx)
   return $ (
     \tpath -> do
       currTreeM <- treeStoreLookup (treeStore ctx) tpath
       case currTreeM of
         Nothing -> putStrLn $ pack "Error with row selection"
-        Just currTree -> putStrLn $ rootLabel currTree
+        Just currTree -> do
+          isSelected <- treeSelectionPathIsSelected selection tpath
+          rows <- treeSelectionCountSelectedRows selection    
+          case isSelected of
+            False  -> case rows of
+                        0 -> cb $ rootLabel currTree
+                        _ -> return ()
+            True   -> return ()
       return True
       )
+
+printTreeSelectionCB :: GtkState TreeSelectionCB
+printTreeSelectionCB = makeSelectionCB putStrLn
