@@ -13,6 +13,22 @@ import qualified Control.Monad.Trans.State.Lazy as ST
 import System.Directory
 import System.FilePath
 
+
+sortNodes :: CardTree -> CardTree
+sortNodes cardTree =
+  sortBy
+  (\ta tb -> compare (rootLabel ta) (rootLabel tb))
+  cardTree
+
+
+sortCardTree :: CardTree -> CardTree
+sortCardTree cardTree =
+  let sortedParents = sortNodes cardTree in
+    fmap (\t -> Node { rootLabel = rootLabel t
+                     , subForest = sortCardTree $ subForest t
+                     }
+         ) sortedParents
+
 -- Implementation of listDirectoryContents
 -- which is available in future versions of
 -- System.Directory
@@ -48,20 +64,15 @@ getDirectoryCardTree path = do
   childRelPaths <- listDirectoryContents truePath
   let childPaths = fmap (\d -> path </> d) childRelPaths
   dirs <- filterM doesDirectoryExist childPaths
-  cardFiles <- filterM isCardJson childPaths
   dirCards <- mapM getDirectoryCardTree dirs
-  let dirAndCards = zip dirs dirCards
+  let sortedDirCards = fmap sortCardTree dirCards
+  let dirAndCards = zip dirs sortedDirCards
   let childCards = fmap (\(dir, cards) ->
                            Node { rootLabel = dir
                                 , subForest = cards
                                 }
                         ) dirAndCards
-  let currCards = fmap (\card ->
-                          Node { rootLabel = card
-                               , subForest = []
-                               }
-                       ) cardFiles
-  return $ childCards ++ currCards
+  return $ childCards
 
 -- Helper function to create a callback that operates on selections
 -- Given a callback of the form (FilePath -> IO ()) we assign this
