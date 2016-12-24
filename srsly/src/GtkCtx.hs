@@ -17,12 +17,14 @@ module GtkCtx
 import Base
 
 import qualified Control.Monad.Trans.State.Lazy as ST
+import System.FilePath
+
 
 data GtkCtx = GtkCtx {
     mainWindow :: Window
   , cardLabel  :: Label
   , treeView   :: TreeView
-  , treeStore  :: TreeStore Text
+  , treeStore  :: TreeStore FilePath
   }
 
 type GtkState = ST.StateT GtkCtx IO
@@ -38,7 +40,7 @@ newGtkCtx = do
   tvCol <- treeViewColumnNew
   rend <- cellRendererTextNew
   treeViewColumnPackStart tvCol rend True
-  cellLayoutSetAttributes tvCol rend ts (\row -> [cellText := row])
+  cellLayoutSetAttributes tvCol rend ts (\row -> [cellText := takeBaseName row])
   newColNums <- treeViewInsertColumn tv tvCol (-1)
   
   set w [ windowDefaultWidth  := 640
@@ -63,7 +65,7 @@ showGtkCtx = do
   ST.put ctx
 
 
-setTreeStore :: TreeStore Text -> GtkState ()
+setTreeStore :: TreeStore FilePath -> GtkState ()
 setTreeStore ts = do
   ctx <- ST.get
   ST.put $ GtkCtx { mainWindow = (mainWindow ctx)

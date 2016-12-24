@@ -9,4 +9,4 @@ module Common
 import Base
 import GtkCtx
 
-type CardTree = Forest Text
+type CardTree = Forest FilePath

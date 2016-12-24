@@ -13,6 +13,9 @@ import qualified Control.Monad.Trans.State.Lazy as ST
 import System.Directory
 import System.FilePath
 
+-- Implementation of listDirectoryContents
+-- which is available in future versions of
+-- System.Directory
 listDirectoryContents :: FilePath -> IO [FilePath]
 listDirectoryContents dir = do
   fmap (
@@ -49,19 +52,19 @@ getDirectoryCardTree path = do
   dirCards <- mapM getDirectoryCardTree dirs
   let dirAndCards = zip dirs dirCards
   let childCards = fmap (\(dir, cards) ->
-                           Node { rootLabel = pack $ takeBaseName dir
+                           Node { rootLabel = dir
                                 , subForest = cards
                                 }
                         ) dirAndCards
   let currCards = fmap (\card ->
-                          Node { rootLabel = pack $ takeBaseName card
+                          Node { rootLabel = card
                                , subForest = []
                                }
                        ) cardFiles
   return $ childCards ++ currCards
 
 -- Helper function to create a callback that operates on selections
--- Given a callback of the form (Text -> IO ()) we assign this
+-- Given a callback of the form (FilePath -> IO ()) we assign this
 -- callback to the callback condition when a new element in our
 -- TreeView is selected.
 --
@@ -81,7 +84,7 @@ getDirectoryCardTree path = do
 --    fires on a selection event, then because only a single
 --    selection is allowed at one time, no element is currently
 --    selected and the given element is *about* to be selected.
-makeSelectionCB :: (Text -> IO ()) -> GtkState TreeSelectionCB
+makeSelectionCB :: (FilePath -> IO ()) -> GtkState TreeSelectionCB
 makeSelectionCB cb = do
   ctx <- ST.get
   selection <- liftIO $ treeViewGetSelection (treeView ctx)
@@ -102,4 +105,4 @@ makeSelectionCB cb = do
       )
 
 printTreeSelectionCB :: GtkState TreeSelectionCB
-printTreeSelectionCB = makeSelectionCB putStrLn
+printTreeSelectionCB = makeSelectionCB $ putStrLn . tshow
