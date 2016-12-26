@@ -18,6 +18,7 @@ module GtkCtx
 import Base
 
 import qualified Control.Monad.Trans.State.Lazy as ST
+import qualified Data.Vector as V
 import System.FilePath
 
 data WindowMode = EditCard | LearnDeck
@@ -25,6 +26,13 @@ data WindowMode = EditCard | LearnDeck
 data SubWindowCtx = SubWindowCtx { window :: Window
                                  , mode   :: WindowMode
                                  }
+
+data TreeCtx a = TreeCtx { view        :: TreeView
+                         , colNames    :: V.Vector Text
+                         , cols        :: V.Vector TreeViewColumn
+                         , store       :: TreeStore a
+                         , renderFunc  :: a -> Text
+                         }
 
 data GtkCtx = GtkCtx { mainWindow    :: Window
                      , subWindowCtx  :: Maybe SubWindowCtx
@@ -73,15 +81,28 @@ showGtkCtx = do
   ST.put ctx
 
 
--- makeTreeCtx :: IO TreeView
--- makeTreeCtx = do
---   ts <- treeStoreNew []
---   tvCards <- treeViewNewWithModel tsCards
---   [ tvCardLastLearnCol,
---     tvCardWillLearnCol,
---     tvCardCreatedCol,
---     tvCardExpiresCol
---     ] <- replicateM 4 treeViewColumnNew
+makeTreeCtx :: [Text] -> (a -> Text) -> IO (TreeCtx a)
+makeTreeCtx cols renderer = do
+  let names = fromList cols
+  tmodel <- treeStoreNew []
+  tv <- treeViewNewWithModel tmodel
+  tvCols <- V.forM names (\_ -> treeViewColumnNew)
+  rendCols <- V.forM names (\_ -> cellRendererTextNew)
+
+  let tvAndRend = zip tvCols rendCols
+  V.forM_ tvAndRend
+    (\(c, r) -> treeViewColumnPackStart c r True)
+  V.forM_ tvAndRend
+    (\(c, r) -> cellLayoutSetAttributes c r tmodel
+      (\row -> [cellText := renderer row]))
+  V.forM tvCols (\c -> treeViewInsertColumn tv c (-1))
+
+  return $ TreeCtx { view       = tv
+                   , cols       = tvCols
+                   , colNames   = names
+                   , store      = tmodel
+                   , renderFunc = renderer
+                   }
   
 
 showSubWindow :: GtkState ()
