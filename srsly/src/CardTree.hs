@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module CardTree
   ( changeCardTree
@@ -103,7 +104,7 @@ makeSelectionCB cb = do
     \tpath -> do
       currTreeM <- treeStoreLookup (treeStore ctx) tpath
       case currTreeM of
-        Nothing -> putStrLn $ pack "Error with row selection"
+        Nothing -> putStrLn "Error with row selection"
         Just currTree -> do
           isSelected <- treeSelectionPathIsSelected selection tpath
           rows <- treeSelectionCountSelectedRows selection    

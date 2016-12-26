@@ -23,10 +23,12 @@ library
                      , transformers
                      , directory
                      , filepath
+                     , time
   other-modules:       GtkCtx
                      , Base
                      , Common
                      , CardTree
+                     , Card
   default-language:    Haskell2010
 
 executable srsly-exe

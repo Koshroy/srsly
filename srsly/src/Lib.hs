@@ -1,8 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Lib
-    ( someFunc
-    , startGui
+    ( startGui
     , mainLoop
 
     , module Base
@@ -14,10 +14,6 @@ import Common
 import CardTree
 
 import qualified Control.Monad.Trans.State.Lazy as ST
-
-
-someFunc :: IO ()
-someFunc = putStrLn $ pack "someFunc"
 
 
 startGui :: IO Bool
@@ -39,6 +35,7 @@ mainLoop = do
         cb <- printTreeSelectionCB
         setTreeViewSelectFunc cb
         showGtkCtx
+        showSubWindow
   ST.evalStateT actions ctx
   mainGUI
   return ()
